@@ -1,0 +1,157 @@
+CG1112 Alex
+Last Updated: 17/3/19 - Dan
+
+===========================================================
+Overview:
+===========================================================
+Control of Alex is done mainly through the Pi, which we will
+control remotely
+
+Mapping is done via the Lidar using SLAM (Simultaneous
+Localization And Mapping). The map is shown to us, and we
+should be executing commands to the pi, which sends commands
+to the Arduino, to control the motors.
+
+Lidar <---- PI -----> Arduino -----> Motors
+
+-----------------------------------------------------------
+===========================================================
+Components:
+===========================================================
+Arduino
+Pi
+Battery Pack
+Powerbank
+2x Motors
+
+Wiring:
+	After finalising the cable layout, cable management done
+	via the M-F jumper cables. Route regular cables to 
+	breadboard if need be. 
+
+Motor driver chip (Orange breadboard)
+	Needs to be connected to the motors and the arduino
+	Current location would be near the front of alex, atm
+	the middle level. get the IC sockets so we can put the
+	breadboard in a better location
+	
+
+-----------------------------------------------------------
+===========================================================
+Motors:
+===========================================================
+Motors controlled via the DRV-8833 chip
+
+Implementation Status:
+	- Analogue movement (digitalWrite etc)
+	- Hall effect sensors
+	- Accelerometer (waiting for item to come in)
+
+Pin connections:
+VIN: Arduino 5v
+GND: Arduino GND
+
+AIN1: PIN6 //reverse direction
+AIN2: PIN5 //forward direction
+BIN1: PIN10 //reverse direction
+BIN2: PIN11 //forward direction
+
+BOUT1: Motor 2 +ve / Red wire from RIGHT motor.
+BOUT2: Motor 2 –ve / Black wire from RIGHT motor.
+AOUT1: Motor 1 +ve / Red wire from LEFT motor.
+AOUT2: Motor 1 –ve / 	Black wire from LEFT MOTOR
+
+Hall Effect Sensors:
+White - PIN2/3 for left / right motor
+Red - Arduino 5v pin
+Black - Arduino GND pin
+
+===========================================================
+Accelerometer:
+===========================================================
+Lib: https://github.com/tockn/MPU6050_tockn
+	- reset x/y/z dist travelled before moveoff
+	- calc dist using .getAcc(), and add to a static global 
+	variable
+	- if y accel goes too far, call appropriate turn 
+	commands to veer (will need to calibrate later on)
+
+===========================================================
+Hall Effect Sensors:
+===========================================================
+Current Status: Finishing up code
+
+- find out wheel circumference = ~20cm
+- find out how much a wheel turns at 90 degrees
+
+moveFwd(int dist)
+	check the number of revolutions, and stop once it hits
+	
+turnLeft(int degree)
+	check the num of revolutions for both wheels, and stop
+	once hit
+
+/* Constants:
+ * #define M1F 5 // Left forward pin
+ * #define M1R 6  // Left reverse pin
+ * #define M2F 10  // Right forward pin
+ * #define M2R 11 // Right reverse pin
+ 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----------------------------------------------------------
+To do:
+-----------------------------------------------------------
+
+Points to work out:
+-----------------------------------------------------------
+Project Specifications
+-----------------------------------------------------------
+Minimally, Alex must be able to carry out the following commands:
+a. Go straight (you can define how far / how long,
+ speed control etc).
+b. Turn left / right (you can define the turning angle
+ or the compass direction).
+c. Identify object** (see more in “additional functionality” 
+section below).
+You can implement additional commands as you see fit.
+
+During the evaluation, you have to manually take note of 
+the environment mapped out by Alex. This "map" will be 
+submitted at the end of your evaluation.
+Evaluation stops as soon as Alex explored and mapped the 
+entire arena OR the time
+limit is up. Exact time limit will be announced nearer to
+ the final evaluation.
+
+Additional task:
+There are 2‐3 regular shaped (e.g. cube, cylinder), 
+either red or green, objects scattered throughout the rooms.
+ These objects are at least as
+tall as the outer wall (i.e. ~18cm). Alex is supposed to 
+figure out the colour of these
+objects during the main evaluation, i.e. the operator should 
+send an "identify object"
+command when such objects are detected during navigation.
+
+Power consumption - 5% (low priority)
+
+
+	
+-----------------------------------------------------------
+Stuff to refer to:
+-----------------------------------------------------------
+
+Accelerometers and interrupts
+https://www.youtube.com/watch?v=EE-tB8nR9EQ
+MPU-6050 Libs
+https://github.com/jarzebski/Arduino-MPU6050
+https://github.com/tockn/MPU6050_tockn/blob/master/examples/GetAllData/GetAllData.ino //use this
+
+Handshake Code:
+http://robot-resource.blogspot.com/2018/01/handshake-code-processing-and-arduino.html
+
+GNUPLOT:
+http://www.gnuplot.info/
+
+State of the Art thing:
+http://www.jst.go.jp/EN/research/index.html

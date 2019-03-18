@@ -78,15 +78,6 @@ Note: motor power is always affected by battery power
 To Do:
 ===========================================================
 
-
-===========================================================
-Changelog:
-===========================================================
-19/3/19
-	Dan:
-		Finished hall effect sensor code (motorHall.h)
-		Implemented packet handling code (packet.h)
-
 ===========================================================
 Project Specifications
 ===========================================================

@@ -5,7 +5,7 @@ Last Updated: 17/3/19 - Dan
 Overview:
 ===========================================================
 Control of Alex is done mainly through the Pi, which we will
-control remotely
+control remotely via vnc server or SSH
 
 Mapping is done via the Lidar using SLAM (Simultaneous
 Localization And Mapping). The map is shown to us, and we
@@ -18,22 +18,11 @@ Lidar <---- PI -----> Arduino -----> Motors
 ===========================================================
 Components:
 ===========================================================
-Arduino
-Pi
-Battery Pack
-Powerbank
-2x Motors
-
-Wiring:
-	After finalising the cable layout, cable management done
-	via the M-F jumper cables. Route regular cables to 
-	breadboard if need be. 
-
-Motor driver chip (Orange breadboard)
-	Needs to be connected to the motors and the arduino
-	Current location would be near the front of alex, atm
-	the middle level. get the IC sockets so we can put the
-	breadboard in a better location
+Arduino:
+	motor.h - analogue motor control (not used)
+	motorHall.h - hall effect sensor control (working)
+	serial.h - packet handling control (up)
+	constants.h - constants header files
 	
 
 -----------------------------------------------------------
@@ -79,23 +68,11 @@ Lib: https://github.com/tockn/MPU6050_tockn
 ===========================================================
 Hall Effect Sensors:
 ===========================================================
-Current Status: Finishing up code
+Current Status: Working
 
-- find out wheel circumference = ~20cm
-- find out how much a wheel turns at 90 degrees
-
-moveFwd(int dist)
-	check the number of revolutions, and stop once it hits
-	
-turnLeft(int degree)
-	check the num of revolutions for both wheels, and stop
-	once hit
-
-/* Constants:
- * #define M1F 5 // Left forward pin
- * #define M1R 6  // Left reverse pin
- * #define M2F 10  // Right forward pin
- * #define M2R 11 // Right reverse pin
+Issues:
+Might need to calibrate properly
+Note: motor power is always affected by battery power
  
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 -----------------------------------------------------------

@@ -1,80 +1,110 @@
+#include "constants.h"
 #include "motor.h"
 #include "motorHall.h"
+#include "serial.h"
 
 void setup() {
-  // put your setup code here, to run once:
+  Serial.begin(57600);
   setupMotorHall();
   
   Serial.println("Hall effect sensors intialized");
 
   Serial.println("All systems nominal.");
-  Serial.begin(57600);
 }
 
-static volatile int com = 0;
+static volatile int statusCounter = 0;
 
-typedef struct { //key-value state pair
-  int state;
-  int val;
-} command;
+static volatile int com = 0;
+static String serialInput;
+static packet inputPacket;
+static bool isExecuting;
+
+static volatile float moveParam1; //magnitude of movement parameter
+static volatile float moveParam2; //pwm
 
 void loop() {
-  //print status
-  Serial.print("left: ");
-  Serial.print(leftCount);
-  Serial.print("   right: ");
-  Serial.println(rightCount);
+  //print status every 20000 cycles
+  statusCounter++;
+  if (statusCounter == 20000) {
+    Serial.print("left: ");
+    Serial.print(leftCount);
+    Serial.print("   right: ");
+    Serial.println(rightCount);
+    statusCounter = 0;
+  }
 
-  delay(200);
+  //fetch serial input (packet)
+
   
-  //serial inputs
-  String serialInput; //grab serial input
+  //fetch serial input (packet from serial monitor)
   if (Serial.available()) {
+    inputPacket = getPacket();  
+    Serial.println(inputPacket.cmd);
+    Serial.println(inputPacket.param1);
+    Serial.println(inputPacket.param2);
+    //isExecuting = true;
+
+    
+
+  }
+
+  //fetch serial input (non-packet)
+  /*if (Serial.available()) {
     serialInput = Serial.readString();
     Serial.print("Input: ");
     Serial.println(serialInput);
-  }
+    isExecuting = true;
+  }*/
+
+  //send acknowledgement packet
+  /*if (inputPacket.cmd = '2' && isExecuting) {
+    Serial.println("Command executed");
+    isExecuting = false;
+    com = 0;
+  }*/
 
   //decode command
-  if (serialInput == "f") com = 1;
-  else if (serialInput == "l") com = 2;
-  else if (serialInput == "r") com = 3;
-  else if (serialInput == "b") com = 4;
+  if (inputPacket.cmd == 'f') com = 1;
+  else if (inputPacket.cmd == 'l') com = 2;
+  else if (inputPacket.cmd == 'r') com = 3;
+  else if (inputPacket.cmd == 'b') com = 4;
+  else if (inputPacket.cmd == 'c') com = 100;
   else com = 0;
-
-  if (com != 0) Serial.println(com);
 
   switch(com) {
     case 0: //idle
       break;
     case 1:
       Serial.println("Move Forward");
-      //moveFwd();
-      forwardH(10, 90);
-      delay(500);
+      forwardH(inputPacket.param1, inputPacket.param2);
+      //delay(500);
       stop();
       break;
     case 2:
       Serial.println("Left Turn");
-      leftTurn();
-      delay(500);
+      //leftTurn();
+      leftH(inputPacket.param1, inputPacket.param2);
+      //delay(500);
       break;
     case 3:
       Serial.println("Right Turn");
-      rightTurn();
-      delay(500);
+      //rightTurn();
+      rightH(inputPacket.param1, inputPacket.param2);
+      //delay(500);
       break;
     case 4:
       Serial.println("Move Backward");
-      reverseH(10, 90);
-      delay(500);
+      reverseH(inputPacket.param1, inputPacket.param2);
+      //delay(500);
       stop();
       break;
+    case 100: //flush left / right count
+      leftCount = 0;
+      rightCount = 0;
+      break;
   }
-  serialInput = "";
-
-  //note: forward() is actually backwards
-  //leftTurn();
-  //delay(1000);
+  
+  inputPacket = flushPacket(inputPacket); //flush after execution
+  
 
 }

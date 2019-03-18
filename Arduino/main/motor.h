@@ -5,19 +5,21 @@
  * movement strictly controlled via delay
  */
 
-// Direction values
-typedef enum dir {
-  STOP,
-  FORWARD,
-  BACKWARD,
-  LEFT,
-  RIGHT
-} dir;
+/* Constants:
+ * #define M1F 6 // Left forward pin
+ * #define M1R 5 // Left reverse pin
+ * #define M2F 10  // Right forward pin
+ * #define M2R 11 // Right reverse pin
+ * 
+ * typedef enum dir {
+ *   STOP,
+ *   FORWARD,
+ *   BACKWARD,
+ *   LEFT,
+ *   RIGHT
+ * } dir;
+ */
 
-#define M1F 5
-#define M1R 6
-#define M2F 10
-#define M2R 11
 
 static volatile int moveSpd = 0;
 

@@ -1,20 +1,27 @@
 /*
  * motorHall.h
- * Motor usage via hall sensors
+ * Motor usage via hall sensors, implement via INT0/INT1
+ * Allows for *precise* movement control
  * 
  * Notes:
  * Every revolution, count ~= 190
+ * 
+ * Issues: PWM not done yet, specifying anything other than 90 or 100
+ * may result in unwanted behaviour (not enough juice to drive ALEX)
+ * 
+ * To implement: set 0 as param 1 for infinite behaviour (?)
  */
  
 /* Constants:
- * #define M1F 5 // Left forward pin
- * #define M1R 6  // Left reverse pin
+ * #define M1F 6 // Left forward pin
+ * #define M1R 5 // Left reverse pin
  * #define M2F 10  // Right forward pin
  * #define M2R 11 // Right reverse pin
  */
 
 #define COUNTS_PER_REV 190 // Number of ticks per revolution from the wheel encoder.
 #define WHEEL_CIRC 20 //Wheel circumference in cm.
+#define COUNTS_PER_RATURN 65 //Number of ticks per right angle turn 
 
 static volatile unsigned long leftCount = 0; //Store the tick count from Alex's left and right encoders.
 static volatile unsigned long rightCount = 0;
@@ -23,6 +30,10 @@ static volatile double rightRevs = 0;
 static volatile unsigned long forwardDist = 0; //Forward and backward distance traveled
 static volatile unsigned long reverseDist = 0;
 static volatile unsigned long maxCount = 0; //max count to stop
+
+/**
+ * Setup Code for Interrupts
+ */
 
 void setupMH() {
  DDRD &= 0b11110011;
@@ -41,6 +52,11 @@ ISR(INT1_vect) {
   rightCount = rightCount + 1;
   rightRevs = (double) rightCount / COUNTS_PER_REV;
 }
+
+/**
+ * Setup Suite Code
+ * To be implemented later w. baremetal programming
+ */
 
 void setupSerial() {
   
@@ -94,6 +110,9 @@ void clearOneCounter(int state) { //Clears one particular counter
   }
 }
 
+/**
+ * Functions to calculate param
+ */
 
 int pwmVal(float speed) { //convert speed to pwm format
   if (speed < 0.0) {
@@ -109,6 +128,10 @@ unsigned long getDistH(float dist) { //return num of tick counts
   return (unsigned long) (COUNTS_PER_REV * (dist / WHEEL_CIRC));
 }
 
+unsigned long getAngleH(float angle) { //return num of tick counts
+  return (unsigned long) ((angle / 90.0) * (float) COUNTS_PER_RATURN);
+}
+
 // Stop Alex. To replace with bare-metal code later.
 void stopH() {
   analogWrite(M1F, 0);
@@ -118,77 +141,72 @@ void stopH() {
   resetGlobalsH();
 }
 
-// Move Alex forward "dist" cm at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// move forward at half speed.
-// Specifying a distance of 0 means Alex will
-// continue moving forward indefinitely.
+/**
+ * Movement Code
+ * Use packet, param1 is dist/angle, param2 is speed
+ * dist in cm, angle in degrees
+ */
+ 
 void forwardH(float dist, float speed) {
   int val = pwmVal(speed);
   resetGlobalsH();
   maxCount = getDistH(dist);
-  Serial.println(maxCount);
-
 
   while (leftCount <= maxCount && rightCount <= maxCount) {
-      
     analogWrite(M1F, val);
     analogWrite(M2F, val);
-    analogWrite(M1R,0);
+    analogWrite(M1R, 0);
     analogWrite(M2R, 0);
   }
-  stopH();
-  
+  stopH(); 
 }
 
-// Reverse Alex "dist" cm at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// reverse at half speed.
-// Specifying a distance of 0 means Alex will
-// continue reversing indefinitely.
 void reverseH(float dist, float speed) {
   int val = pwmVal(speed);
   resetGlobalsH();
+  maxCount = getDistH(dist);
   
-  analogWrite(M1R, val);
-  analogWrite(M2R, val);
-  analogWrite(M2F, 0);
-  analogWrite(M2F, 0);
-
-  while (leftCount <= maxCount && rightCount <= maxCount);
+  while (leftCount <= maxCount && rightCount <= maxCount) {
+    analogWrite(M1F, 0);
+    analogWrite(M2F, 0);
+    analogWrite(M1R, val);
+    analogWrite(M2R, val);
+  }
   stopH();
 }
 
-// Turn Alex left "ang" degrees at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// turn left at half speed.
-// Specifying an angle of 0 degrees will cause Alex to
-// turn left indefinitely.
-void leftH(float ang, float speed) {
+void leftH(float angle, float speed) {
   int val = pwmVal(speed);
   resetGlobalsH();
-
-  analogWrite(M1R, val);
-  analogWrite(M2F, val);
-  analogWrite(M1F, 0);
-  analogWrite(M2R, 0);
+  maxCount = getAngleH(angle);
+  
+  while (leftCount <= maxCount) {
+    analogWrite(M1R, val);
+    analogWrite(M2F, val);
+    analogWrite(M1F, 0);
+    analogWrite(M2R, 0);
+  }
+  stopH();
 }
 
-// Turn Alex right "ang" degrees at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// turn left at half speed.
-// Specifying an angle of 0 degrees will cause Alex to
-// turn right indefinitely.
-void rightH(float ang, float speed) {
+void rightH(float angle, float speed) {
   resetGlobalsH();
   int val = pwmVal(speed);
-
-  analogWrite(M2R, val);
-  analogWrite(M1F, val);
-  analogWrite(M1R, 0);
-  analogWrite(M2F, 0);
+  maxCount = getAngleH(angle);
+  
+  while (rightCount <= maxCount) {
+    analogWrite(M2R, val);
+    analogWrite(M1F, val);
+    analogWrite(M1R, 0);
+    analogWrite(M2F, 0);
+  }
+  stopH();
 }
 
+/**
+ * Hall Effect Sensor Setup Code
+ * Call to init sensors.
+ */
 void setupMotorHall() {
   resetGlobalsH();
   cli();

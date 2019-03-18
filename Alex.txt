@@ -74,15 +74,22 @@ Issues:
 Might need to calibrate properly
 Note: motor power is always affected by battery power
  
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
------------------------------------------------------------
-To do:
------------------------------------------------------------
+===========================================================
+To Do:
+===========================================================
 
-Points to work out:
------------------------------------------------------------
+
+===========================================================
+Changelog:
+===========================================================
+19/3/19
+	Dan:
+		Finished hall effect sensor code (motorHall.h)
+		Implemented packet handling code (packet.h)
+
+===========================================================
 Project Specifications
------------------------------------------------------------
+===========================================================
 Minimally, Alex must be able to carry out the following commands:
 a. Go straight (you can define how far / how long,
  speed control etc).

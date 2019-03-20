@@ -1,10 +1,9 @@
-/*
+/**************************************************************************************************
  * motor.h
  * Regular motor code for Alex
  * Use analogWrite to assign
  * movement strictly controlled via delay
- */
-
+**************************************************************************************************/
 /* Constants:
  * #define M1F 6 // Left forward pin
  * #define M1R 5 // Left reverse pin
@@ -20,7 +19,6 @@
  * } dir;
  */
 
-
 static volatile int moveSpd = 0;
 
 double checkPercent(double percent) {
@@ -29,17 +27,13 @@ double checkPercent(double percent) {
   else return percent;
 }
 
-// Get PWM value based on percentage
-int getPWMValue(double percent) {
+int getPWMValue(double percent) { // Get PWM value based on percentage
   return (int)(percent/100.0 * 255.0); 
 }
 
 void move(double percent, int direction) {
   int val=getPWMValue(checkPercent(percent));
-
-  // Forward and reverse values for motors 1 and 2
   int M1FVal, M1RVal, M2FVal, M2RVal;
-
   switch(direction) {
     case FORWARD:    
       M1FVal=0;
@@ -47,37 +41,31 @@ void move(double percent, int direction) {
       M1RVal=val;
       M2RVal=val;  
     break;
-
     case BACKWARD:
       M1FVal=val;
       M2FVal=val;
       M1RVal=0;
       M2RVal=0; 
     break;
-
     case LEFT:
      M1FVal=val;
      M2FVal=0;
      M1RVal=0;
      M2RVal=val;
-    break;
-    
+    break;   
     case RIGHT:
       M1FVal=0;
       M2FVal=val;
       M1RVal=val;
       M2RVal=0;
     break;
-
     case STOP:
     default:
-
-    M1FVal=0;
-    M2FVal=0;
-    M1RVal=0;
-    M2RVal=0;
+      M1FVal=0;
+      M2FVal=0;
+      M1RVal=0;
+      M2RVal=0;
   }
-
   analogWrite(M1F, M1FVal);
   analogWrite(M2F, M2FVal);
   analogWrite(M1R, M1RVal);

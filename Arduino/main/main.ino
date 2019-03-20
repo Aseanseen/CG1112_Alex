@@ -3,6 +3,9 @@
 #include "motorHall.h"
 #include "serial.h"
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
 void setup() {
   Serial.begin(57600);
   setupMotorHall();
@@ -34,7 +37,6 @@ void loop() {
   }
 
   //fetch serial input (packet)
-
   
   //fetch serial input (packet from serial monitor)
   if (Serial.available()) {
@@ -43,9 +45,6 @@ void loop() {
     Serial.println(inputPacket.param1);
     Serial.println(inputPacket.param2);
     //isExecuting = true;
-
-    
-
   }
 
   //fetch serial input (non-packet)
@@ -56,7 +55,7 @@ void loop() {
     isExecuting = true;
   }*/
 
-  //send acknowledgement packet
+  //send acknowledgement packet (broken)
   /*if (inputPacket.cmd = '2' && isExecuting) {
     Serial.println("Command executed");
     isExecuting = false;

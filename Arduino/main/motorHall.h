@@ -1,4 +1,4 @@
-/*
+/**************************************************************************************************
  * motorHall.h
  * Motor usage via hall sensors, implement via INT0/INT1
  * Allows for *precise* movement control
@@ -10,7 +10,7 @@
  * may result in unwanted behaviour (not enough juice to drive ALEX)
  * 
  * To implement: set 0 as param 1 for infinite behaviour (?)
- */
+**************************************************************************************************/
  
 /* Constants:
  * #define M1F 6 // Left forward pin
@@ -19,23 +19,22 @@
  * #define M2R 11 // Right reverse pin
  */
 
-#define COUNTS_PER_REV 190 // Number of ticks per revolution from the wheel encoder.
+#define COUNTS_PER_REV 190 //Num of Ticks per Revolution
 #define WHEEL_CIRC 20 //Wheel circumference in cm.
 #define COUNTS_PER_RATURN 65 //Number of ticks per right angle turn 
 
-static volatile unsigned long leftCount = 0; //Store the tick count from Alex's left and right encoders.
+static volatile unsigned long leftCount = 0; //Store encoder tick count
 static volatile unsigned long rightCount = 0;
-static volatile double leftRevs = 0; //Store the revolutions on Alex's left and right wheels
+static volatile double leftRevs = 0; //Revolution count per wheel
 static volatile double rightRevs = 0;
-static volatile unsigned long forwardDist = 0; //Forward and backward distance traveled
+static volatile unsigned long forwardDist = 0;
 static volatile unsigned long reverseDist = 0;
 static volatile unsigned long maxCount = 0; //max count to stop
 
-/**
- * Setup Code for Interrupts
- */
-
-void setupMH() {
+/**************************************************************************************************
+ * Setup Code for Hall Effect Sensor
+**************************************************************************************************/
+void setupMH() { //setup interrupts
  DDRD &= 0b11110011;
  PORTD |= 0b00001100;
  EICRA = 0b00001010; //falling edge, PIN2/3
@@ -53,11 +52,31 @@ ISR(INT1_vect) {
   rightRevs = (double) rightCount / COUNTS_PER_REV;
 }
 
-/**
+/**************************************************************************************************
+ * Parameter Calculation Functions
+**************************************************************************************************/
+int getPWM(float speed) { //convert speed to pwm format
+  if (speed < 0.0) {
+    Serial.println("Invalid speed, defaulting to 0.");
+    return 0;
+  } else if (speed > 100.0) {
+    Serial.println("Exceeded speed limit, defaulting to 100");
+    return 100;
+  } else return (int) ((speed / 100.0) * 255.0);
+}
+
+unsigned long getDistH(float dist) { //return num of tick counts
+  return (unsigned long) (COUNTS_PER_REV * (dist / WHEEL_CIRC));
+}
+
+unsigned long getAngleH(float angle) { //return num of tick counts
+  return (unsigned long) ((angle / 90.0) * (float) COUNTS_PER_RATURN);
+}
+
+/**************************************************************************************************
  * Setup Suite Code
  * To be implemented later w. baremetal programming
- */
-
+**************************************************************************************************/
 void setupSerial() {
   
 }
@@ -66,14 +85,31 @@ void startSerial() {
   
 }
 
+//PWM-based setup
 void setupMotors() {
-  
+  DDRD |= 0b01100000;
+  DDRB |= 0b00001100; //need to double check
+  TCNT0 = 0;
+  OCR0A = 0;
+  OCR0B = 0;
+  TIMSK0 |= 0b110;
+  TCCR0B = 0b00000011;
 }
 
 void startMotors() {
   
 }
 
+ISR(TIMER0_COMPA_vect) {
+  OCR0A = 128;
+}
+
+ISR(TIMER0_COMPB_vect) {
+  OCR0B = 128;
+}
+/**************************************************************************************************
+ * Global Variable Reset Functions
+**************************************************************************************************/
 void resetGlobalsH() { //reset all values
   leftCount= 0;
   rightCount = 0;
@@ -110,29 +146,16 @@ void clearOneCounter(int state) { //Clears one particular counter
   }
 }
 
-/**
- * Functions to calculate param
- */
 
-int pwmVal(float speed) { //convert speed to pwm format
-  if (speed < 0.0) {
-    Serial.println("Invalid speed, defaulting to 0.");
-    return 0;
-  } else if (speed > 100.0) {
-    Serial.println("Exceeded speed limit, defaulting to 100");
-    return 100;
-  } else return (int) ((speed / 100.0) * 255.0);
-}
-
-unsigned long getDistH(float dist) { //return num of tick counts
-  return (unsigned long) (COUNTS_PER_REV * (dist / WHEEL_CIRC));
-}
-
-unsigned long getAngleH(float angle) { //return num of tick counts
-  return (unsigned long) ((angle / 90.0) * (float) COUNTS_PER_RATURN);
-}
-
-// Stop Alex. To replace with bare-metal code later.
+/**************************************************************************************************
+ * Movement Code
+ * Configured for packet currently
+ * param1 is dist/angle, param2 is speed 
+ * dist in cm, angle in degrees
+ * 
+ * Note: Bare-metal doesn't work atm due to timer pins not being mapped yet
+**************************************************************************************************/
+/*analogWrite version*/
 void stopH() {
   analogWrite(M1F, 0);
   analogWrite(M1R, 0);
@@ -141,14 +164,8 @@ void stopH() {
   resetGlobalsH();
 }
 
-/**
- * Movement Code
- * Use packet, param1 is dist/angle, param2 is speed
- * dist in cm, angle in degrees
- */
- 
 void forwardH(float dist, float speed) {
-  int val = pwmVal(speed);
+  int val = getPWM(speed);
   resetGlobalsH();
   maxCount = getDistH(dist);
 
@@ -162,7 +179,7 @@ void forwardH(float dist, float speed) {
 }
 
 void reverseH(float dist, float speed) {
-  int val = pwmVal(speed);
+  int val = getPWM(speed);
   resetGlobalsH();
   maxCount = getDistH(dist);
   
@@ -176,7 +193,7 @@ void reverseH(float dist, float speed) {
 }
 
 void leftH(float angle, float speed) {
-  int val = pwmVal(speed);
+  int val = getPWM(speed);
   resetGlobalsH();
   maxCount = getAngleH(angle);
   
@@ -191,7 +208,7 @@ void leftH(float angle, float speed) {
 
 void rightH(float angle, float speed) {
   resetGlobalsH();
-  int val = pwmVal(speed);
+  int val = getPWM(speed);
   maxCount = getAngleH(angle);
   
   while (rightCount <= maxCount) {
@@ -203,10 +220,71 @@ void rightH(float angle, float speed) {
   stopH();
 }
 
-/**
+/*************************************************************************************************/
+/*bare-metal version*/
+/*void stopH() {
+  PORTD &= 0b11111111;
+  PORTB &= 0b11111111;
+  resetGlobalsH();
+}
+
+/*void forwardH(float dist, float speed) {
+  OCR0A = getPWM(speed);
+  resetGlobalsH();
+  maxCount = getDistH(dist);
+
+  TCCR0A = 0b11000001;
+  while (leftCount <= maxCount && rightCount <= maxCount) {
+    PORTD &= 0b11011111;
+    PORTB &= 0b11111011;
+  }
+  stopH(); 
+}
+
+void reverseH(float dist, float speed) {
+  OCR0A = getPWM(speed);
+  resetGlobalsH();
+  maxCount = getDistH(dist);
+
+  TCCR0A = 0b11000001;
+  while (leftCount <= maxCount && rightCount <= maxCount) {
+    PORTD &= 0b10111111;
+    PORTB &= 0b11110111;
+  }
+  stopH(); 
+}
+
+void leftH(float angle, float speed) {
+  int val = getPWM(speed);
+  resetGlobalsH();
+  maxCount = getAngleH(angle);
+  
+  TCCR0A = 0b11000001;
+  while (leftCount <= maxCount) {
+    PORTD &= 0b10111111;
+    PORTB &= 0b11111011;
+  }
+  stopH();
+}
+
+void rightH(float angle, float speed) {
+  resetGlobalsH();
+  int val = getPWM(speed);
+  maxCount = getAngleH(angle);
+  
+  TCCR0A = 0b11000001;
+  while (rightCount <= maxCount) {
+    PORTD &= 0b10111111;
+    PORTB &= 0b11110111;
+  }
+  stopH();
+}*/
+
+/**************************************************************************************************
  * Hall Effect Sensor Setup Code
  * Call to init sensors.
- */
+ * Calls various setup functions
+**************************************************************************************************/
 void setupMotorHall() {
   resetGlobalsH();
   cli();
@@ -214,8 +292,8 @@ void setupMotorHall() {
   Serial.println("motorHall.h setup complete");
   setupSerial();
   startSerial();
-  setupMotors();
-  startMotors();
+  //setupMotors(); //for bare-metal version
+  //startMotors();
   //initializeState();
   sei();
 }

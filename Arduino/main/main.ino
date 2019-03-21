@@ -29,9 +29,9 @@ void loop() {
   //print status every 20000 cycles
   statusCounter++;
   if (statusCounter == 20000) {
-    Serial.print("left: ");
+    Serial.print("right: ");
     Serial.print(leftCount);
-    Serial.print("   right: ");
+    Serial.print("   left: ");
     Serial.println(rightCount);
     statusCounter = 0;
   }
@@ -76,26 +76,28 @@ void loop() {
     case 1:
       Serial.println("Move Forward");
       forwardH(inputPacket.param1, inputPacket.param2);
-      //delay(500);
-      stop();
+      //stop();
+      stopH();
       break;
     case 2:
       Serial.println("Left Turn");
       //leftTurn();
       leftH(inputPacket.param1, inputPacket.param2);
-      //delay(500);
+      //stop();
+      stopH();
       break;
     case 3:
       Serial.println("Right Turn");
       //rightTurn();
       rightH(inputPacket.param1, inputPacket.param2);
-      //delay(500);
+      //stop();
+      stopH();
       break;
     case 4:
       Serial.println("Move Backward");
       reverseH(inputPacket.param1, inputPacket.param2);
-      //delay(500);
-      stop();
+      //stop();
+      stopH();
       break;
     case 100: //flush left / right count
       leftCount = 0;

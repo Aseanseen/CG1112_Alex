@@ -87,13 +87,19 @@ void startSerial() {
 
 //PWM-based setup
 void setupMotors() {
-  DDRD |= 0b01100000;
-  DDRB |= 0b00001100; //need to double check
+  DDRD |= 0b01100000; //pin5/6
   TCNT0 = 0;
   OCR0A = 0;
   OCR0B = 0;
   TIMSK0 |= 0b110;
   TCCR0B = 0b00000011;
+
+  DDRB |= 0b00000110; //pin9/10
+  TCNT1 = 0;
+  OCR1A = 0;
+  OCR1B = 0;
+  TIMSK1 |= 0b110;
+  TCCR1B = 0b00000011;
 }
 
 void startMotors() {
@@ -107,6 +113,15 @@ ISR(TIMER0_COMPA_vect) {
 ISR(TIMER0_COMPB_vect) {
   OCR0B = 128;
 }
+
+ISR(TIMER1_COMPA_vect) {
+  OCR1A = 128;
+}
+
+ISR(TIMER1_COMPB_vect) {
+  OCR1B = 128;
+}
+
 /**************************************************************************************************
  * Global Variable Reset Functions
 **************************************************************************************************/
@@ -156,7 +171,7 @@ void clearOneCounter(int state) { //Clears one particular counter
  * Note: Bare-metal doesn't work atm due to timer pins not being mapped yet
 **************************************************************************************************/
 /*analogWrite version*/
-void stopH() {
+/*void stopH() {
   analogWrite(M1F, 0);
   analogWrite(M1R, 0);
   analogWrite(M2F, 0);
@@ -218,67 +233,88 @@ void rightH(float angle, float speed) {
     analogWrite(M2F, 0);
   }
   stopH();
-}
+}*/
 
 /*************************************************************************************************/
 /*bare-metal version*/
-/*void stopH() {
-  PORTD &= 0b11111111;
-  PORTB &= 0b11111111;
+void stopH() {
+  PORTD |= 0b01100000;
+  PORTB |= 0b00000110;
+  OCR0A = 0;
+  OCR0B = 0;
+  OCR1A = 0;
+  OCR1B = 0;
   resetGlobalsH();
 }
 
-/*void forwardH(float dist, float speed) {
-  OCR0A = getPWM(speed);
+void forwardH(float dist, float speed) {
   resetGlobalsH();
+  OCR0A = getPWM(speed);
+  OCR0B = getPWM(speed);
+  OCR1A = getPWM(speed);
+  OCR1B = getPWM(speed);
   maxCount = getDistH(dist);
 
   TCCR0A = 0b11000001;
+  TCCR1A = 0b00110001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     PORTD &= 0b11011111;
-    PORTB &= 0b11111011;
+    PORTB &= 0b11111101;
   }
+  
   stopH(); 
 }
 
 void reverseH(float dist, float speed) {
-  OCR0A = getPWM(speed);
   resetGlobalsH();
+  OCR0A = getPWM(speed);
+  OCR0B = getPWM(speed);
+  OCR1A = getPWM(speed);
+  OCR1B = getPWM(speed);
   maxCount = getDistH(dist);
 
-  TCCR0A = 0b11000001;
+  TCCR0A = 0b00110001;
+  TCCR1A = 0b11000001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
-    PORTD &= 0b10111111;
-    PORTB &= 0b11110111;
+    PORTD &= 0b11101111;
+    PORTB &= 0b11111011;
   }
   stopH(); 
 }
 
 void leftH(float angle, float speed) {
-  int val = getPWM(speed);
   resetGlobalsH();
+  OCR0A = getPWM(speed);
+  OCR0B = getPWM(speed);
+  OCR1A = getPWM(speed);
+  OCR1B = getPWM(speed);
   maxCount = getAngleH(angle);
-  
-  TCCR0A = 0b11000001;
-  while (leftCount <= maxCount) {
-    PORTD &= 0b10111111;
-    PORTB &= 0b11111011;
+
+  TCCR1A = 0b00110001;
+  TCCR0A = 0b00110001;
+  while (leftCount <= maxCount && rightCount <= maxCount) {
+    PORTD &= 0b11101111;
+    PORTB &= 0b11111101;
   }
-  stopH();
+  stopH(); 
 }
 
 void rightH(float angle, float speed) {
   resetGlobalsH();
-  int val = getPWM(speed);
+  OCR0A = getPWM(speed);
+  OCR0B = getPWM(speed);
+  OCR1A = getPWM(speed);
+  OCR1B = getPWM(speed);
   maxCount = getAngleH(angle);
-  
+
   TCCR0A = 0b11000001;
-  while (rightCount <= maxCount) {
-    PORTD &= 0b10111111;
-    PORTB &= 0b11110111;
+  TCCR1A = 0b11000001;
+  while (leftCount <= maxCount && rightCount <= maxCount) {
+    PORTB &= 0b11111011;
+    PORTB &= 0b11111101;
   }
-  stopH();
-}*/
+  stopH(); 
+}
 
 /**************************************************************************************************
  * Hall Effect Sensor Setup Code
@@ -292,7 +328,7 @@ void setupMotorHall() {
   Serial.println("motorHall.h setup complete");
   setupSerial();
   startSerial();
-  //setupMotors(); //for bare-metal version
+  setupMotors(); //for bare-metal version
   //startMotors();
   //initializeState();
   sei();

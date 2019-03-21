@@ -10,7 +10,7 @@
 //motor pins
 #define M1F 6
 #define M1R 5
-#define M2F 11
+#define M2F 9
 #define M2R 10
 
 // Direction values

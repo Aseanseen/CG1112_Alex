@@ -8,6 +8,7 @@ Changelog:
 		Implemented packet handling code (packet.h)
 21/3/19
 	Dan:
-		PWM code needs checking (TIMER pin mapping)
+		PWM / bare-metal code for motors implemented
 		Added serialising code to main.ino
 		*Requires working with the Pi later on
+		

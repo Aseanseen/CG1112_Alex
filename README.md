@@ -1,5 +1,4 @@
-# CG1112_Alex
-Mbot's Less Retarded Brother.
+# CG1112_Alex - Mbot's Less Retarded Brother.
 
 Changelog:
 19/3/19
@@ -11,4 +10,8 @@ Changelog:
 		PWM / bare-metal code for motors implemented
 		Added serialising code to main.ino
 		*Requires working with the Pi later on
-		
+
+29/3/19
+	Dan:
+		Cleaned up folders in git repo
+		Pushed current stable build (28.3.19)

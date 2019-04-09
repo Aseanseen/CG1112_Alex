@@ -1,0 +1,11 @@
+29/3/19:
+	- Separated speed in motor.h to speedLeft / speedRight
+	- Added rampdown code to motor.h code
+	- Added course correction code to forward / reverse in motor.h
+
+31/3/19:
+	- Added ultrasonic.h
+		-  Added distance in front checking code
+		- Now  automatically stops when detected distancee is within 10cm
+	- Note: bad magic num error may still occur every now and then
+	  restart the prog until it doesnt show up )(might be a synchronisation error)

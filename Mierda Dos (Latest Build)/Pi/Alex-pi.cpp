@@ -31,6 +31,22 @@ void handleError(TResult error) {
 			printf("[PI] UNKNOWN ERROR\n");
 	}
 }
+void scan(){
+		printf("plotting...\n");
+
+			std::system("g++ w8s1.cpp Lib/librplidar_sdk.a -lpthread -lm");
+
+			std::system("./a.out /dev/ttyUSB0");
+
+			
+}	
+
+void plot(){
+	
+	std::system("gnuplot liplot.plt --persist");
+}	
+
+
 
 //handles 6 params
 void handleStatus(TPacket *packet) {
@@ -201,6 +217,7 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
+			scan();
 			break;
 
 		case 'b': //reverse
@@ -209,6 +226,8 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
+			
+			scan();
 			break;
 
 		case 'l': //left
@@ -217,6 +236,9 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
+			
+			scan();
+			
 			break;
 
 		case 'r': //right
@@ -225,6 +247,8 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
+		
+			scan();
 			break;
 
 		case 's': //stop
@@ -271,13 +295,7 @@ void sendCommand(char command) {
 		
 		case 'p':
 		case 'P':
-			printf("plotting...\n");
-
-			std::system("g++ w8s1.cpp Lib/librplidar_sdk.a -lpthread -lm");
-
-			std::system("./a.out /dev/ttyUSB0");
-
-			std::system("gnuplot liplot.plt --persist");
+			plot();
 			break;
 		
 		default:

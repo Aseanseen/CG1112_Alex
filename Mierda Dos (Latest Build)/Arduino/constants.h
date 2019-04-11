@@ -22,7 +22,7 @@
 #define M2R 10
 
 #define LMOTORCOMP 1.0
-#define RMOTORCOMP 1.0
+#define RMOTORCOMP 0.98
 #define COURSECOMP 0.8
 
 //hall effect constants
@@ -38,7 +38,7 @@ static volatile double rightRevs = 0;
 static volatile unsigned long forwardDist = 0;
 static volatile unsigned long reverseDist = 0;
 static volatile unsigned long maxCount = 0; //max count to stop
-static volatile unsigned long speed = 0;
+static volatile unsigned long motorSpeed = 0;
 static volatile long distFront = 0;
 
 //Direction values
@@ -62,6 +62,8 @@ volatile TDirection dir = STOP;
 /*|packet.h|***************************************************************************************
 **************************************************************************************************/
 char *message = "[AR] NULL"; //any miscellaneous messages to print
+
+void sendMsgAuto();
 
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
@@ -114,7 +116,9 @@ typedef enum { //Commands
   COMMAND_GET_STATS = 5,
   COMMAND_CLEAR_STATS = 6,
   COMMAND_APPROACH = 7,
-  COMMAND_GETDIST = 8
+  COMMAND_GETDIST = 8,
+  COMMAND_CALIBRATELS = 9,
+  COMMAND_GETRGB = 10
 } TCommandType;
 
 /*|TResult is defined in <serialize.h>, declaration here for reference|****************************
@@ -146,3 +150,12 @@ TResult deserialize(const char *buffer, int len, void *output);
 
 #define USTRIG 12 //Ultrasonic Sensor Trigger Pin
 #define USECHO 13 //Echo Pin
+
+
+/*|lightsensor.h|**********************************************************************************
+**************************************************************************************************/
+#include <Wire.h>
+#include "Adafruit_TCS34725.h"
+
+void calibrateLS();
+void readColor();

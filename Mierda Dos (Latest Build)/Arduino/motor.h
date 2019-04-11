@@ -101,12 +101,15 @@ void clearOneCounter(int state) { //Clears one particular counter
 **************************************************************************************************/
 int getPWM(float speed) { //convert speed to pwm format
   if (speed < 0.0) {
-    Serial.println("Invalid speed, defaulting to 0.");
+    message = "Invalid spd, default 0\n";
+    sendMsgAuto();
     return 0;
   } else if (speed > 100.0) {
-    Serial.println("Exceeded speed limit, defaulting to 100");
+    message = "Exceeded spd limit, default 100\n";
+    sendMsgAuto();
     return 100;
-  } else return (int) ((speed / 100.0) * 255.0);
+  } else return (int) (speed * 2.55);
+  //} else return (int) ((speed / 100.0) * 255.0);
 }
 
 unsigned long getDistH(float dist) { //return num of tick counts
@@ -138,19 +141,19 @@ void setupMotors() {
 }
 
 ISR(TIMER0_COMPA_vect) {
-  OCR0A = RMOTORCOMP * getPWM(speed);
+  OCR0A = RMOTORCOMP * getPWM(motorSpeed);
 }
 
 ISR(TIMER0_COMPB_vect) {
-  OCR0B = RMOTORCOMP * getPWM(speed);
+  OCR0B = RMOTORCOMP * getPWM(motorSpeed);
 }
 
 ISR(TIMER1_COMPA_vect) {
-  OCR1A = LMOTORCOMP * getPWM(speed);
+  OCR1A = LMOTORCOMP * getPWM(motorSpeed);
 }
 
 ISR(TIMER1_COMPB_vect) {
-  OCR1B = LMOTORCOMP * getPWM(speed);
+  OCR1B = LMOTORCOMP * getPWM(motorSpeed);
 }
 
 void initializeState() {
@@ -232,21 +235,24 @@ void rightH(float angle, float speed) {
 void stopH() {
   PORTD |= 0b01100000;
   PORTB |= 0b00000110;
+  TCCR0A = 0b00000001;
+  TCCR1A = 0b00000001;
   OCR0A = 0;
   OCR0B = 0;
   OCR1A = 0;
   OCR1B = 0;
   resetGlobalsH();
+  motorSpeed = 0;
 }
 
 void forwardH(float dist, float speed) {
   resetGlobalsH();
-  speed = speed;
+  motorSpeed = speed;
   maxCount = getDistH(dist);
   distFront = getDistUS();
   
-  TCCR0A = 0b11000001;
-  TCCR1A = 0b00110001;
+  TCCR0A = 0b10000001;
+  TCCR1A = 0b00100001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     distFront = getDistUS();
     if (distFront <= 10 && distFront != 0) break;
@@ -255,93 +261,93 @@ void forwardH(float dist, float speed) {
 
     //course-correction
     if (leftCount - rightCount >= 50) {
-      OCR1A = (LMOTORCOMP * getPWM(speed)) * COURSECOMP;
-      OCR1B = (LMOTORCOMP * getPWM(speed)) * COURSECOMP;
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
-      OCR1A = (LMOTORCOMP * getPWM(speed));
-      OCR1B = (LMOTORCOMP * getPWM(speed));
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed));
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
     }
 
     if (rightCount - leftCount >= 50) {
-      OCR0A = (RMOTORCOMP * getPWM(speed)) * COURSECOMP;
-      OCR0B = (RMOTORCOMP * getPWM(speed)) * COURSECOMP;
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
-      OCR0A = (RMOTORCOMP * getPWM(speed));
-      OCR0B = (RMOTORCOMP * getPWM(speed));
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed));
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed));
     }
     
-    if (maxCount - leftCount <= 150 || maxCount - rightCount <= 150)
-      speed = max(speed - 10, 30);
+    if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
+      motorSpeed = max(motorSpeed - 2, 50);
   }
   stopH(); 
 }
 
 void reverseH(float dist, float speed) {
   resetGlobalsH();
-  speed = speed;
+  motorSpeed = speed;
   maxCount = getDistH(dist);
 
-  TCCR0A = 0b00110001;
-  TCCR1A = 0b11000001;
+  TCCR0A = 0b00100001;
+  TCCR1A = 0b10000001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     PORTD &= 0b10111111;
     PORTB &= 0b11111011;
 
     //course-correction
     if (leftCount - rightCount >= 50) {
-      OCR1A = (LMOTORCOMP * getPWM(speed)) * COURSECOMP;
-      OCR1B = (LMOTORCOMP * getPWM(speed)) * COURSECOMP;
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
-      OCR1A = (LMOTORCOMP * getPWM(speed));
-      OCR1B = (LMOTORCOMP * getPWM(speed));
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed));
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
     }
 
     if (rightCount - leftCount >= 50) {
-      OCR0A = (RMOTORCOMP * getPWM(speed)) * COURSECOMP;
-      OCR0B = (RMOTORCOMP * getPWM(speed)) * COURSECOMP;
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
-      OCR0A = (RMOTORCOMP * getPWM(speed));
-      OCR0B = (RMOTORCOMP * getPWM(speed));
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed));
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed));
     }
     
-    if (maxCount - leftCount <= 150 || maxCount - rightCount <= 150)
-      speed = max(speed - 10, 30);
+    if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
+      motorSpeed = max(motorSpeed - 2, 50);
   }
   stopH(); 
 }
 
 void leftH(float angle, float speed) {
   resetGlobalsH();
-  speed = speed;
+  motorSpeed = speed;
   maxCount = getAngleH(angle);
   distFront = getDistUS();
 
-  TCCR1A = 0b00110001;
-  TCCR0A = 0b00110001;
+  TCCR1A = 0b00100001;
+  TCCR0A = 0b00100001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     distFront = getDistUS();
     PORTD &= 0b10111111;
     PORTB &= 0b11111101;
     if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
-      speed = max(speed - 10, 30);
+      motorSpeed = max(motorSpeed - 2, 50);
   }
   stopH(); 
 }
 
 void rightH(float angle, float speed) {
   resetGlobalsH();
-  speed = speed;
+  motorSpeed = speed;
   maxCount = getAngleH(angle);
   distFront = getDistUS();
 
-  TCCR0A = 0b11000001;
-  TCCR1A = 0b11000001;
+  TCCR0A = 0b10000001;
+  TCCR1A = 0b10000001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     distFront = getDistUS();
     PORTD &= 0b11011111;
     PORTB &= 0b11111011;
     if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
-      speed = max(speed - 10, 30);
+      motorSpeed = max(motorSpeed - 2, 50);
   }
   stopH(); 
 }
@@ -349,7 +355,7 @@ void rightH(float angle, float speed) {
 //slowly approach obj in front
 void approachH()  {
   resetGlobalsH();
-  speed = 50;
+  motorSpeed = 50;
   distFront = getDistUS();
   
   TCCR0A = 0b11000001;
@@ -361,24 +367,24 @@ void approachH()  {
 
     //course-correction
     if (leftCount - rightCount >= 50) {
-      OCR1A = (LMOTORCOMP * getPWM(speed)) * COURSECOMP;
-      OCR1B = (LMOTORCOMP * getPWM(speed)) * COURSECOMP;
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
-      OCR1A = (LMOTORCOMP * getPWM(speed));
-      OCR1B = (LMOTORCOMP * getPWM(speed));
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed));
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
     }
 
     if (rightCount - leftCount >= 50) {
-      OCR0A = (RMOTORCOMP * getPWM(speed)) * COURSECOMP;
-      OCR0B = (RMOTORCOMP * getPWM(speed)) * COURSECOMP;
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
-      OCR0A = (RMOTORCOMP * getPWM(speed));
-      OCR0B = (RMOTORCOMP * getPWM(speed));
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed));
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed));
     }
-    if (distFront <= 20 && distFront >= 9) speed = 40;
-    if (distFront <=  8) speed = max(speed - 10, 20);
+    
   }
-  speed = 0;
+  
+  motorSpeed = 0;
   stopH(); 
   
 }

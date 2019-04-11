@@ -19,6 +19,7 @@ void setup() {
   setupSerial();
   startSerial();
   setupUS();
+  setupLS();
   sei();
   waitForHello();
 }

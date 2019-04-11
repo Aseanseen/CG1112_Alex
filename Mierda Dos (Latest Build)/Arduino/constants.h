@@ -63,6 +63,8 @@ volatile TDirection dir = STOP;
 **************************************************************************************************/
 char *message = "[AR] NULL"; //any miscellaneous messages to print
 
+void sendMsgAuto();
+
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
 

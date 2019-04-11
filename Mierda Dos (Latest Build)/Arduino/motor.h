@@ -101,12 +101,10 @@ void clearOneCounter(int state) { //Clears one particular counter
 **************************************************************************************************/
 int getPWM(float speed) { //convert speed to pwm format
   if (speed < 0.0) {
-    message = "Invalid spd, default 0\n";
-    sendMsgAuto();
+    Serial.println("Invalid speed, defaulting to 0.");
     return 0;
   } else if (speed > 100.0) {
-    message = "Exceeded spd limit, default 100\n";
-    sendMsgAuto();
+    Serial.println("Exceeded speed limit, defaulting to 100");
     return 100;
   } else return (int) ((speed / 100.0) * 255.0);
 }
@@ -324,7 +322,7 @@ void leftH(float angle, float speed) {
     distFront = getDistUS();
     PORTD &= 0b10111111;
     PORTB &= 0b11111101;
-    if (maxCount - leftCount <= 150 || maxCount - rightCount <= 150)
+    if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
       speed = max(speed - 10, 30);
   }
   stopH(); 
@@ -342,7 +340,7 @@ void rightH(float angle, float speed) {
     distFront = getDistUS();
     PORTD &= 0b11011111;
     PORTB &= 0b11111011;
-    if (maxCount - leftCount <= 150 || maxCount - rightCount <= 150)
+    if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
       speed = max(speed - 10, 30);
   }
   stopH(); 
@@ -380,7 +378,6 @@ void approachH()  {
     if (distFront <= 20 && distFront >= 9) speed = 40;
     if (distFront <=  8) speed = max(speed - 10, 20);
   }
-  
   speed = 0;
   stopH(); 
   

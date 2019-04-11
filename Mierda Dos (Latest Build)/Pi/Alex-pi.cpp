@@ -7,6 +7,8 @@
 #include "serial.h"
 #include "serialize.h"
 #include "constants.h"
+#include <stdlib.h>
+
 
 //take note that PORT_NAME may change, but it should either be ttyACM0 or ACM1
 #define PORT_NAME			"/dev/ttyACM0"
@@ -266,7 +268,18 @@ void sendCommand(char command) {
 			printf("[PI] EXIT CALLED\n");
 			exitFlag=1;
 			break;
+		
+		case 'p':
+		case 'P':
+			printf("plotting...\n");
 
+			std::system("g++ w8s1.cpp Lib/librplidar_sdk.a -lpthread -lm");
+
+			std::system("./a.out /dev/ttyUSB0");
+
+			std::system("gnuplot liplot.plt --persist");
+			break;
+		
 		default:
 			printf("Bad command\n");
 
@@ -286,11 +299,15 @@ int main() {
 	pthread_t recv;
 
 	pthread_create(&recv, NULL, receiveThread, NULL);
-
+	
+	
+	
 	//Send a hello packet
 	TPacket helloPacket;
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
+
+	
 
 	while(!exitFlag) {
 		char ch;

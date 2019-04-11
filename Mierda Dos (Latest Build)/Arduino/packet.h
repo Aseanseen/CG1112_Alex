@@ -156,16 +156,6 @@ void handleCommand(TPacket *command) {
         sendDist();
         sendOK();
     break;
-
-    case COMMAND_CALIBRATELS:
-        calibrateLS();
-        sendOK();
-    break;
-
-    case COMMAND_GETRGB:
-        readColor();
-        sendOK();
-    break;
          
     default:
       sendBadCommand();

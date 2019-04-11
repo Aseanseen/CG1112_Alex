@@ -10,7 +10,6 @@
 //#include "motorA.h" //analogue motor control
 #include "packet.h"
 #include "serial.h"
-#include "lightsensor.h"
 
 //uncomment out Serial.println msg if debugging, else it interferes w. program
 void setup() {
@@ -19,7 +18,6 @@ void setup() {
   setupSerial();
   startSerial();
   setupUS();
-  setupLS();
   sei();
   waitForHello();
 }

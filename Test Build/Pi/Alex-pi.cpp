@@ -7,6 +7,8 @@
 #include "serial.h"
 #include "serialize.h"
 #include "constants.h"
+#include <stdlib.h>
+
 
 //take note that PORT_NAME may change, but it should either be ttyACM0 or ACM1
 #define PORT_NAME			"/dev/ttyACM0"
@@ -29,6 +31,22 @@ void handleError(TResult error) {
 			printf("[PI] UNKNOWN ERROR\n");
 	}
 }
+void scan(){
+		printf("plotting...\n");
+
+			std::system("g++ w8s1.cpp Lib/librplidar_sdk.a -lpthread -lm");
+
+			std::system("./a.out /dev/ttyUSB0");
+
+			
+}	
+
+void plot(){
+	
+	std::system("gnuplot liplot.plt --persist");
+}	
+
+
 
 //handles 6 params
 void handleStatus(TPacket *packet) {
@@ -199,6 +217,7 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
+			scan();
 			break;
 
 		case 'b': //reverse
@@ -207,6 +226,8 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
+			
+			scan();
 			break;
 
 		case 'l': //left
@@ -215,6 +236,9 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
+			
+			scan();
+			
 			break;
 
 		case 'r': //right
@@ -223,6 +247,8 @@ void sendCommand(char command) {
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
+		
+			scan();
 			break;
 
 		case 's': //stop
@@ -266,7 +292,12 @@ void sendCommand(char command) {
 			printf("[PI] EXIT CALLED\n");
 			exitFlag=1;
 			break;
-
+		
+		case 'p':
+		case 'P':
+			plot();
+			break;
+		
 		default:
 			printf("Bad command\n");
 
@@ -286,11 +317,15 @@ int main() {
 	pthread_t recv;
 
 	pthread_create(&recv, NULL, receiveThread, NULL);
-
+	
+	
+	
 	//Send a hello packet
 	TPacket helloPacket;
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
+
+	
 
 	while(!exitFlag) {
 		char ch;

@@ -11,7 +11,6 @@
  * TPacket Enum Declarations (packet.h)
 **************************************************************************************************/
 
-
 /*|motor.h|****************************************************************************************
 **************************************************************************************************/
 
@@ -22,11 +21,11 @@
 #define M2R 10
 
 #define LMOTORCOMP 1.0
-#define RMOTORCOMP 1.0
-#define COURSECOMP 0.8
+#define RMOTORCOMP 0.98
+#define COURSECOMP 0.98
 
 //hall effect constants
-#define COUNTS_PER_REV 190 //Num of Ticks per Revolution
+#define COUNTS_PER_REV 188 //Num of Ticks per Revolution
 #define WHEEL_CIRC 20 //Wheel circumference in cm.
 #define COUNTS_PER_RATURN 65 //Number of ticks per right angle turn 
 
@@ -38,7 +37,7 @@ static volatile double rightRevs = 0;
 static volatile unsigned long forwardDist = 0;
 static volatile unsigned long reverseDist = 0;
 static volatile unsigned long maxCount = 0; //max count to stop
-static volatile unsigned long speed = 0;
+static volatile unsigned long motorSpeed = 0;
 static volatile long distFront = 0;
 
 //Direction values
@@ -62,6 +61,8 @@ volatile TDirection dir = STOP;
 /*|packet.h|***************************************************************************************
 **************************************************************************************************/
 char *message = "[AR] NULL"; //any miscellaneous messages to print
+
+void sendMsgAuto();
 
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
@@ -111,12 +112,13 @@ typedef enum { //Commands
   COMMAND_TURN_LEFT = 2,
   COMMAND_TURN_RIGHT = 3,
   COMMAND_STOP = 4,
-  COMMAND_GET_STATS = 5,
-  COMMAND_CLEAR_STATS = 6,
-  COMMAND_APPROACH = 7,
-  COMMAND_GETDIST = 8,
-  COMMAND_CALIBRATELS = 9,
-  COMMAND_GETRGB = 10
+  COMMAND_FWD_NO_STOP = 5,
+  COMMAND_GET_STATS = 6,
+  COMMAND_CLEAR_STATS = 7,
+  COMMAND_APPROACH = 8,
+  COMMAND_GETDIST = 9,
+  COMMAND_CALIBRATELS = 10,
+  COMMAND_GETRGB = 11
 } TCommandType;
 
 /*|TResult is defined in <serialize.h>, declaration here for reference|****************************

@@ -29,16 +29,13 @@ int getDistUS() { //returns the length of an object in front
   _delay_ms(2);
   
   PORTB |= 0b00010000; //Sets the trigPin on HIGH state for 10 micro seconds
-  _delay_ms(10);
+  _delay_ms(20);
   PORTB &= 0b11101111; //Clear
   
   duration = pulseIn(USECHO, HIGH); //Reads the echoPin, returns the sound wave travel time in microseconds
   
   distance= duration*0.034/2; //Calculate the distance
-  /*if (distance != 0) { //print
-    Serial.print("Distance: ");
-    Serial.println(distance);
-  }*/
+  
   return distance;
 }
 

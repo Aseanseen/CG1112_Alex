@@ -90,7 +90,7 @@ void handleErrorResponse(TPacket *packet) { //The error code is returned in comm
 }
 
 void handleMessage(TPacket *packet) {
-	printf("[AR] msg: %s\n", packet->data);
+	printf("[AR] >> MSG: %s\n", packet->data);
 }
 
 void handlePacket(TPacket *packet) {
@@ -171,6 +171,9 @@ void sendCommand(char command) {
 			printf("F - Forward, B - Reverse, R - Right, L - Left\n");
 			printf("S - Stop, A - Approach, D - Get dist\n");
 			printf("--------------------------------------------------\n");
+			printf("Light Sensor Commands:\n");
+			printf("N - Calibrate, M - get RGB value\n");
+			printf("--------------------------------------------------\n");
 			printf("Status Commands:\n");
 			printf("G - Get status, C - Clear status\n");
 			printf("==================================================\n");
@@ -179,7 +182,6 @@ void sendCommand(char command) {
 		case 'a': //approach obj
 		case 'A':
 			printf("[PI] approach command\n");
-			flushInput();
 			commandPacket.command = COMMAND_APPROACH;
 			sendPacket(&commandPacket);
 			break;
@@ -187,7 +189,6 @@ void sendCommand(char command) {
 		case 'd':
 		case 'D':
 			printf("[PI] get dist command\n");
-			flushInput();
 			commandPacket.command = COMMAND_GETDIST;
 			sendPacket(&commandPacket);
 			break;
@@ -243,6 +244,20 @@ void sendCommand(char command) {
 		case 'G':
 			printf("[PI] fetch status command\n");
 			commandPacket.command = COMMAND_GET_STATS;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'n':
+		case 'N':
+			printf("[PI] calibrating ARDUINO light sensor\n");
+			commandPacket.command = COMMAND_CALIBRATELS;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'm':
+		case 'M':
+			printf("[PI] fetching RGB values\n");
+			commandPacket.command = COMMAND_GETRGB;
 			sendPacket(&commandPacket);
 			break;
 

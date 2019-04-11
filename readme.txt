@@ -17,23 +17,32 @@ Lidar <---- PI -----> Arduino -----> Motors
 ===================================================================================================
 Status:
 ===================================================================================================
-Build 29.3.19:
+Build 3 (29.3.19):
 	PWM control completed, may require some calibration once all parts are fully assembled and
 	full weight of bot can be tested.
 	Serial comms between Pi and Arduino is done.
 	Basic communication between both platforms are tested, additional non-essential parts of the 
 	comms will be tested later on.
+	
+Build 4 (8.4.19):
+	Fixed serial comms
+	Formatted Alex-pi (now called Alex to make things easier)
+	Alex executable now shows text that will make me want to kms less
+
+Build 5 (10.4.19):
+	Added skeleton code for light sensor, requires calibration
+	Fixed message sending from arduino to pi
+
 
 ---------------------------------------------------------------------------------------------------
 ===================================================================================================
 Contents:
 ===================================================================================================
-Alex_Serial_Comms: test files for serial comms
-Alex_test: test files for Alex
 Builds: Previous stable builds
 Dependencies: Relevant libs to be used
 Mierda Dos: Latest stable build to use
-Test Build: test build to use
+Testing: Literally what it says
+Test Build: Current test build (may not be stable)
 
 ---------------------------------------------------------------------------------------------------
 ===================================================================================================

@@ -35,7 +35,10 @@ int getDistUS() { //returns the length of an object in front
   duration = pulseIn(USECHO, HIGH); //Reads the echoPin, returns the sound wave travel time in microseconds
   
   distance= duration*0.034/2; //Calculate the distance
-  
+  /*if (distance != 0) { //print
+    Serial.print("Distance: ");
+    Serial.println(distance);
+  }*/
   return distance;
 }
 

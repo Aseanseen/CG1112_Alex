@@ -51,19 +51,11 @@ void sendStatus() {
   sendResponse(&statusPacket);
 }
 
-void sendMessage(const char *message) { //send text to PI , max 32 chars
+void sendMessage(const char *message) { //send text to PI
   TPacket messagePacket;
   messagePacket.packetType=PACKET_TYPE_MESSAGE;
   strncpy(messagePacket.data, message, MAX_STR_LEN);
   sendResponse(&messagePacket);
-}
-
-void sendMsgAuto() { //sends and clears the current stored message
-  TPacket messagePacket;
-  messagePacket.packetType=PACKET_TYPE_MESSAGE;
-  strncpy(messagePacket.data, message, MAX_STR_LEN);
-  sendResponse(&messagePacket);
-  message = "[AR] NULL"; //default message
 }
 
 void sendBadPacket() { //bad input  
@@ -102,20 +94,20 @@ void sendOK() { //acknowledgement packet
   sendResponse(&okPacket); 
 }
 
-void sendDist() {
-  distFront = getDistUS();
-  message = "dist in front: ";
-  sendMsgAuto();
-  itoa(distFront, message, 10);
-  sendMsgAuto();
-}
-
 void sendTooClose() { //sent when within 10cm dist
   TPacket tooClose;
   tooClose.packetType = PACKET_TYPE_RESPONSE;
   tooClose.command = RESP_TOO_CLOSE;
-  sendResponse(&tooClose);
-  sendDist();
+  sendResponse(&tooClose);  
+}
+
+void sendDist() {
+  int dist = getDistUS();
+  sendMessage("[AR]: dist in front:");
+  char *distMessage;
+  distMessage = dist;
+  sendMessage(distMessage);
+  sendMessage("\n");
 }
 
 /**************************************************************************************************
@@ -154,16 +146,6 @@ void handleCommand(TPacket *command) {
 
     case COMMAND_GETDIST:
         sendDist();
-        sendOK();
-    break;
-
-    case COMMAND_CALIBRATELS:
-        calibrateLS();
-        sendOK();
-    break;
-
-    case COMMAND_GETRGB:
-        readColor();
         sendOK();
     break;
          

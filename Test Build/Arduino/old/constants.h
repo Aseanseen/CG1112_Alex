@@ -23,7 +23,6 @@
 
 #define LMOTORCOMP 1.0
 #define RMOTORCOMP 1.0
-#define COURSECOMP 0.8
 
 //hall effect constants
 #define COUNTS_PER_REV 190 //Num of Ticks per Revolution
@@ -61,7 +60,6 @@ volatile TDirection dir = STOP;
 
 /*|packet.h|***************************************************************************************
 **************************************************************************************************/
-char *message = "[AR] NULL"; //any miscellaneous messages to print
 
 #ifndef __CONTROL_H__
 #define __CONTROL_H__
@@ -114,9 +112,7 @@ typedef enum { //Commands
   COMMAND_GET_STATS = 5,
   COMMAND_CLEAR_STATS = 6,
   COMMAND_APPROACH = 7,
-  COMMAND_GETDIST = 8,
-  COMMAND_CALIBRATELS = 9,
-  COMMAND_GETRGB = 10
+  COMMAND_GETDIST = 8
 } TCommandType;
 
 /*|TResult is defined in <serialize.h>, declaration here for reference|****************************
@@ -148,12 +144,3 @@ TResult deserialize(const char *buffer, int len, void *output);
 
 #define USTRIG 12 //Ultrasonic Sensor Trigger Pin
 #define USECHO 13 //Echo Pin
-
-
-/*|lightsensor.h|**********************************************************************************
-**************************************************************************************************/
-#include <Wire.h>
-#include "Adafruit_TCS34725.h"
-
-void calibrateLS();
-void readColor();

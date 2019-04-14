@@ -40,11 +40,11 @@ void sendStatus() {
   statusPacket.command = RESP_STATUS;
   statusPacket.params[0] = leftCount;  
   statusPacket.params[1] = rightCount;  
-  statusPacket.params[2] = leftRevs;  
-  statusPacket.params[3] = rightRevs;  
+  statusPacket.params[2] = leftAngle;  
+  statusPacket.params[3] = rightAngle;  
   statusPacket.params[4] = forwardDist;  
   statusPacket.params[5] = reverseDist;  
-  statusPacket.params[6] = 0;  
+  statusPacket.params[6] = netAngle;  
   statusPacket.params[7] = 0;  
   statusPacket.params[8] = 0;  
   statusPacket.params[9] = 0;  
@@ -126,29 +126,64 @@ void handleCommand(TPacket *command) {
     case COMMAND_FORWARD: // For movement commands, param[0] = distance, param[1] = speed.
         forwardH((float) command->params[0], (float) command->params[1]);
         if (distFront <= 10) sendTooClose();
+        sendStatus();
+        resetGlobalsH();
         sendOK();
     break;
     
     case COMMAND_REVERSE:
         reverseH((float) command->params[0], (float) command->params[1]);
+        sendStatus();
+        resetGlobalsH();
         sendOK();
     break;
     
     case COMMAND_TURN_LEFT:
         leftH((float) command->params[0], (float) command->params[1]);
         if (distFront <= 10) sendTooClose();
+        sendStatus();
+        resetGlobalsH();
         sendOK();
     break;
     
     case COMMAND_TURN_RIGHT:
         rightH((float) command->params[0], (float) command->params[1]);
         if (distFront <= 10) sendTooClose();
+        sendStatus();
+        resetGlobalsH();
+        sendOK();
+    break;
+
+    
+    case COMMAND_SWING_LEFT:
+        leftSH((float) command->params[0], (float) command->params[1]);
+        if (distFront <= 10) sendTooClose();
+        sendStatus();
+        resetGlobalsH();
+        sendOK();
+    break;
+    
+    case COMMAND_SWING_RIGHT:
+        rightSH((float) command->params[0], (float) command->params[1]);
+        if (distFront <= 10) sendTooClose();
+        sendStatus();
+        resetGlobalsH();
         sendOK();
     break;
 
     case COMMAND_APPROACH:
         approachH();
         sendDist();
+        sendStatus();
+        resetGlobalsH();
+        sendOK();
+    break;
+
+    case COMMAND_FWD_NO_STOP:
+        forwardHC((float) command->params[0], (float) command->params[1]);
+        sendDist();
+        sendStatus();
+        resetGlobalsH();
         sendOK();
     break;
 
@@ -164,6 +199,11 @@ void handleCommand(TPacket *command) {
 
     case COMMAND_GETRGB:
         readColor();
+        sendOK();
+    break;
+
+    case  COMMAND_GET_STATS:
+        sendStatus;
         sendOK();
     break;
          

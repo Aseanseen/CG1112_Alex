@@ -1,0 +1,128 @@
+/*case 'h':
+		case 'H':
+			printf("==================================================\n");
+			printf("[PI] displaying options (case insensitive)\n");
+			printf("==================================================\n");
+			printf("Movement Commands:\n");
+			printf("F - Forward, B - Reverse, R - Right, L - Left\n");
+			printf("S - Stop, A - Approach, D - Get dist\n");
+			printf("M - Forward, no stopping\n");
+			printf("--------------------------------------------------\n");
+			printf("Light Sensor Commands:\n");
+			printf("V - Calibrate, J - get RGB value\n");
+			printf("--------------------------------------------------\n");
+			printf("Status Commands:\n");
+			printf("G - Get status, C - Clear status\n");
+			printf("==================================================\n");
+			break;
+		
+		case 'a': //approach obj
+		case 'A':
+			printf("[PI] approach command\n");
+			commandPacket.command = COMMAND_APPROACH;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'm':
+		case 'M':
+			printf("[PI] forward, collision disabled\n");
+			printf("[PI] WARNING COLLISION DETECTION OFF\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_FWD_NO_STOP;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'd':
+		case 'D':
+			printf("[PI] get dist command\n");
+			commandPacket.command = COMMAND_GETDIST;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'f': //forward
+		case 'F':
+			printf("[PI] forward command\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_FORWARD;
+			sendPacket(&commandPacket);
+			scan();
+			break;
+
+		case 'b': //reverse
+		case 'B':
+			printf("[PI] reverse command\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_REVERSE;
+			sendPacket(&commandPacket);
+			
+			scan();
+			break;
+
+		case 'l': //left
+		case 'L':
+			printf("[PI] left command\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_TURN_LEFT;
+			sendPacket(&commandPacket);
+			
+			scan();
+			
+			break;
+
+		case 'r': //right
+		case 'R':
+			printf("[PI] right command\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_TURN_RIGHT;
+			sendPacket(&commandPacket);
+		
+			scan();
+			break;
+
+		case 's': //stop
+		case 'S':
+			printf("[PI] stop command\n");
+			commandPacket.command = COMMAND_STOP;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'c': //clear status
+		case 'C':
+			printf("[PI] clear status command\n");
+			commandPacket.command = COMMAND_CLEAR_STATS;
+			commandPacket.params[0] = 0;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'g': //fetch status
+		case 'G':
+			printf("[PI] fetch status command\n");
+			commandPacket.command = COMMAND_GET_STATS;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'v':
+		case 'V':
+			printf("[PI] calibrating ARDUINO light sensor\n");
+			commandPacket.command = COMMAND_CALIBRATELS;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'j':
+		case 'J':
+			printf("[PI] fetching RGB values\n");
+			commandPacket.command = COMMAND_GETRGB;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'q': //exit
+		case 'Q':
+			printf("[PI] EXIT CALLED\n");
+			exitFlag=1;
+			break;
+		
+		case 'p': //plot
+		case 'P':
+			printf("[PI] plotting\n");
+			plot();
+			break;*/

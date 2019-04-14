@@ -48,13 +48,13 @@ void setupMH() { //setup interrupts
 
 ISR(INT0_vect) {
   leftCount = leftCount + 1;
-  leftRevs = (double) leftCount / COUNTS_PER_REV;
-  forwardDist = leftRevs * WHEEL_CIRC; //assumed wheels are straight
+  leftAngle = (double) ((90.0 * leftCount) / COUNTS_PER_RATURN);
+  //forwardDist = leftCount * WHEEL_CIRC; //assumed wheels are straight
 }
 
 ISR(INT1_vect) {
   rightCount = rightCount + 1;
-  rightRevs = (double) rightCount / COUNTS_PER_REV;
+  rightAngle = (double) ((90.0 * rightCount) / COUNTS_PER_RATURN);
 }
 
 /**************************************************************************************************
@@ -63,8 +63,8 @@ ISR(INT1_vect) {
 void resetGlobalsH() { //reset all values
   leftCount= 0;
   rightCount = 0;
-  leftRevs = 0;
-  rightRevs = 0;
+  leftAngle = 0;
+  rightAngle = 0;
   forwardDist = 0; 
   reverseDist = 0; 
   maxCount = 0; 
@@ -82,10 +82,10 @@ void clearOneCounter(int state) { //Clears one particular counter
       rightCount=0;
       break;
     case 3:
-      leftRevs=0;
+      leftAngle=0;
       break;
     case 4:
-      rightRevs=0;
+      rightAngle=0;
       break;
     case 5:
       forwardDist=0;
@@ -241,7 +241,6 @@ void stopH() {
   OCR0B = 0;
   OCR1A = 0;
   OCR1B = 0;
-  resetGlobalsH();
   motorSpeed = 0;
 }
 
@@ -255,12 +254,13 @@ void forwardH(float dist, float speed) {
   TCCR1A = 0b00100001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     distFront = getDistUS();
-    if (distFront <= 10 && distFront != 0) break;
+    if (distFront <= 5 && distFront != 0) break;
+    if (distFront <= 10 || maxCount - leftCount <= 50 || maxCount - rightCount <= 50) motorSpeed = 50;
     PORTD &= 0b11011111;
     PORTB &= 0b11111101;
 
     //course-correction
-    if (leftCount - rightCount >= 50) {
+    if (leftCount - rightCount >= 30) {
       OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
       OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
@@ -268,7 +268,7 @@ void forwardH(float dist, float speed) {
       OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
     }
 
-    if (rightCount - leftCount >= 50) {
+    if (rightCount - leftCount >= 30) {
       OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
       OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
@@ -278,12 +278,12 @@ void forwardH(float dist, float speed) {
     
     /*if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
       motorSpeed = max(motorSpeed - 2, 50);8*/
-
-    if (maxCount - leftCount <= 50 || maxCount - rightCount <= 50)
-      motorSpeed = 50;
       
   }
-  stopH(); 
+  forwardDist = WHEEL_CIRC * ((double) (leftCount + rightCount) / 2.0) / (COUNTS_PER_REV);
+  netAngle = max(leftAngle, rightAngle) - min(leftAngle, rightAngle);
+  stopH();
+  //resetGlobalsH();
 }
 
 void reverseH(float dist, float speed) {
@@ -298,7 +298,7 @@ void reverseH(float dist, float speed) {
     PORTB &= 0b11111011;
 
     //course-correction
-    if (leftCount - rightCount >= 50) {
+    if (leftCount - rightCount >= 30) {
       OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
       OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
@@ -306,7 +306,7 @@ void reverseH(float dist, float speed) {
       OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
     }
 
-    if (rightCount - leftCount >= 50) {
+    if (rightCount - leftCount >= 30) {
       OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
       OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
@@ -316,12 +316,15 @@ void reverseH(float dist, float speed) {
     
     /*if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
       motorSpeed = max(motorSpeed - 2, 50);*/
-
+    
     if (maxCount - leftCount <= 50 || maxCount - rightCount <= 50)
     motorSpeed = 50;
     
   }
-  stopH(); 
+  stopH();
+  reverseDist = WHEEL_CIRC * ((double) (leftCount + rightCount) / 2.0) / (COUNTS_PER_REV);
+  netAngle = max(leftAngle, rightAngle) - min(leftAngle, rightAngle);
+  //resetGlobalsH();
 }
 
 void leftH(float angle, float speed) {
@@ -339,7 +342,9 @@ void leftH(float angle, float speed) {
     /*if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
       motorSpeed = max(motorSpeed - 2, 50);*/
   }
-  stopH(); 
+  stopH();
+  netAngle = (leftAngle  + rightAngle) / 2;
+  //resetGlobalsH();
 }
 
 void rightH(float angle, float speed) {
@@ -358,42 +363,44 @@ void rightH(float angle, float speed) {
       motorSpeed = max(motorSpeed - 2, 50);*/
   }
   stopH(); 
+  netAngle = (leftAngle  + rightAngle) / 2;
+  //resetGlobalsH();
 }
 
-//slowly approach obj in front
-void approachH()  {
+void leftSH(float angle, float speed) {
   resetGlobalsH();
-  motorSpeed = 50;
+  motorSpeed = speed;
+  maxCount = getAngleH(angle);
   distFront = getDistUS();
-  
-  TCCR0A = 0b11000001;
-  TCCR1A = 0b00110001;
-  while (distFront >= 3) {
+
+  TCCR1A = 0b00100001;
+  while (leftCount <= 2 * maxCount) {
+    distFront = getDistUS();
+    PORTB &= 0b11111101;
+    /*if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
+      motorSpeed = max(motorSpeed - 2, 50);*/
+  }
+  stopH(); 
+  netAngle = (leftAngle  + rightAngle) / 2;
+  //resetGlobalsH();
+}
+
+void rightSH(float angle, float speed) {
+  resetGlobalsH();
+  motorSpeed = speed;
+  maxCount = getAngleH(angle);
+  distFront = getDistUS();
+
+  TCCR0A = 0b10000001;
+  while (rightCount <= 2 * maxCount) {
     distFront = getDistUS();
     PORTD &= 0b11011111;
-    PORTB &= 0b11111101;
-
-    //course-correction
-    if (leftCount - rightCount >= 50) {
-      OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
-      OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
-    } else {
-      OCR1A = (LMOTORCOMP * getPWM(motorSpeed));
-      OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
-    }
-
-    if (rightCount - leftCount >= 50) {
-      OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
-      OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
-    } else {
-      OCR0A = (RMOTORCOMP * getPWM(motorSpeed));
-      OCR0B = (RMOTORCOMP * getPWM(motorSpeed));
-    }
-    
+    /*if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
+      motorSpeed = max(motorSpeed - 2, 50);*/
   }
-  
-  motorSpeed = 0;
   stopH(); 
+  netAngle = (leftAngle  + rightAngle) / 2;
+  //resetGlobalsH();
 }
 
 void forwardHC(float dist, float speed) { //move forward, ignore ultrasonic sensors
@@ -402,15 +409,13 @@ void forwardHC(float dist, float speed) { //move forward, ignore ultrasonic sens
   maxCount = getDistH(dist);
   distFront = getDistUS();
   
-  TCCR0A = 0b10000001;
   TCCR1A = 0b00100001;
   while (leftCount <= maxCount && rightCount <= maxCount) {
     distFront = getDistUS();
-    PORTD &= 0b11011111;
     PORTB &= 0b11111101;
 
     //course-correction
-    if (leftCount - rightCount >= 50) {
+    if (leftCount - rightCount >= 30) {
       OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
       OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
@@ -418,7 +423,7 @@ void forwardHC(float dist, float speed) { //move forward, ignore ultrasonic sens
       OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
     }
 
-    if (rightCount - leftCount >= 50) {
+    if (rightCount - leftCount >= 30) {
       OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
       OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
     } else {
@@ -429,16 +434,65 @@ void forwardHC(float dist, float speed) { //move forward, ignore ultrasonic sens
     /*if (maxCount - leftCount <= 100 || maxCount - rightCount <= 100)
       motorSpeed = max(motorSpeed - 2, 50);*/
 
-    if (maxCount - leftCount <= 50 || maxCount - rightCount <= 50)
+    if (maxCount - leftCount <= 50 || maxCount - rightCount <= 50 || distFront <= 10)
     motorSpeed = 50;
     
   }
   
   distFront = getDistUS();
   if (distFront <= 5) sendTooClose();
+  forwardDist = WHEEL_CIRC * ((double) (leftCount + rightCount) / 2.0) / (COUNTS_PER_REV);
+  netAngle = max(leftAngle, rightAngle) - min(leftAngle, rightAngle);
   stopH(); 
+  //resetGlobalsH();
   
 }
+
+//slowly approach obj in front
+void approachH()  {
+  resetGlobalsH();
+  motorSpeed = 40;
+  distFront = getDistUS();
+  
+  TCCR0A = 0b11000001;
+  TCCR1A = 0b00110001;
+  while (distFront >= 5) {
+    distFront = getDistUS();
+    PORTD &= 0b11011111;
+    PORTB &= 0b11111101;
+
+    //course-correction
+    if (leftCount - rightCount >= 30) {
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+    } else {
+      OCR1A = (LMOTORCOMP * getPWM(motorSpeed));
+      OCR1B = (LMOTORCOMP * getPWM(motorSpeed));
+    }
+
+    if (rightCount - leftCount >= 30) {
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed)) * COURSECOMP;
+    } else {
+      OCR0A = (RMOTORCOMP * getPWM(motorSpeed));
+      OCR0B = (RMOTORCOMP * getPWM(motorSpeed));
+    }
+    
+  }
+  
+  motorSpeed = 0;
+  forwardDist = WHEEL_CIRC * ((double) (leftCount + rightCount) / 2.0) / (COUNTS_PER_REV);
+  netAngle = max(leftAngle, rightAngle) - min(leftAngle, rightAngle);
+  stopH(); 
+
+  forwardHC(1, 45);
+  forwardHC(1, 45);
+  
+  motorSpeed = 0;
+  stopH(); 
+  //resetGlobalsH();
+}
+
 
 /**************************************************************************************************
  * Hall Effect Sensor Setup Code

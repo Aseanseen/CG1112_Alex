@@ -32,6 +32,12 @@ Build 4 (8.4.19):
 Build 5 (10.4.19):
 	Added skeleton code for light sensor, requires calibration
 	Fixed message sending from arduino to pi
+	
+Build 6 (14.4.19):
+	Fixed PWM code
+	Implemented status messages for movement
+		Now shows more info for the user
+	Integrated gnuplot into main Pi code
 
 
 ---------------------------------------------------------------------------------------------------

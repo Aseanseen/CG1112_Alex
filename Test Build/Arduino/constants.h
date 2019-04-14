@@ -27,18 +27,21 @@
 //hall effect constants
 #define COUNTS_PER_REV 188 //Num of Ticks per Revolution
 #define WHEEL_CIRC 20 //Wheel circumference in cm.
-#define COUNTS_PER_RATURN 65 //Number of ticks per right angle turn 
+#define COUNTS_PER_RATURN 58 //Number of ticks per right angle turn 
 
 //motor.h Global Declarations
 static volatile unsigned long leftCount = 0; //Store encoder tick count
 static volatile unsigned long rightCount = 0;
-static volatile double leftRevs = 0; //Revolution count per wheel
-static volatile double rightRevs = 0;
+static volatile double leftAngle = 0; //Revolution count per wheel
+static volatile double rightAngle = 0;
 static volatile unsigned long forwardDist = 0;
 static volatile unsigned long reverseDist = 0;
 static volatile unsigned long maxCount = 0; //max count to stop
 static volatile unsigned long motorSpeed = 0;
+static volatile unsigned long netAngle = 0; //bet angle movement
 static volatile long distFront = 0;
+
+void resetGlobalsH();
 
 //Direction values
 /*typedef enum dir {
@@ -62,6 +65,7 @@ volatile TDirection dir = STOP;
 **************************************************************************************************/
 char *message = "[AR] NULL"; //any miscellaneous messages to print
 
+void sendTooClose();
 void sendMsgAuto();
 
 #ifndef __CONTROL_H__
@@ -107,18 +111,20 @@ typedef enum { //Response types. This goes into the command field
 } TResponseType;
 
 typedef enum { //Commands
-  COMMAND_FORWARD = 0, //param[0] - dist/angle, param[1] speed
+  COMMAND_FORWARD = 0,
   COMMAND_REVERSE = 1,
   COMMAND_TURN_LEFT = 2,
   COMMAND_TURN_RIGHT = 3,
-  COMMAND_STOP = 4,
-  COMMAND_FWD_NO_STOP = 5,
-  COMMAND_GET_STATS = 6,
-  COMMAND_CLEAR_STATS = 7,
-  COMMAND_APPROACH = 8,
-  COMMAND_GETDIST = 9,
-  COMMAND_CALIBRATELS = 10,
-  COMMAND_GETRGB = 11
+  COMMAND_SWING_LEFT = 4,
+  COMMAND_SWING_RIGHT = 5,
+  COMMAND_STOP = 6,
+  COMMAND_FWD_NO_STOP = 7,
+  COMMAND_GET_STATS = 8,
+  COMMAND_CLEAR_STATS = 9,
+  COMMAND_APPROACH = 10,
+  COMMAND_GETDIST = 11,
+  COMMAND_CALIBRATELS = 12,
+  COMMAND_GETRGB = 13
 } TCommandType;
 
 /*|TResult is defined in <serialize.h>, declaration here for reference|****************************

@@ -11,7 +11,7 @@
 
 
 //take note that PORT_NAME may change, but it should either be ttyACM0 or ACM1
-#define PORT_NAME			"/dev/ttyACM0"
+#define PORT_NAME			"/dev/ttyACM1"
 #define BAUD_RATE			B57600
 
 int exitFlag=0;
@@ -52,13 +52,13 @@ void plot(){
 void handleStatus(TPacket *packet) {
 	printf("[PI] fetched ARDUINO status report\n");
 	printf("\n ------- ARDUINO STATUS REPORT ------- \n\n");
-	printf("[AR]: Left Forward Count:\t\t%d\n", packet->params[0]);
-	printf("[AR]: Right Forward Count:\t\t%d\n", packet->params[1]);
-	printf("[AR]: Left Revolutions:\t\t%d\n", packet->params[2]);
-	printf("[AR]: Right Revolutions:\t\t%d\n", packet->params[3]);
-	printf("[AR]: Forward Dist:\t%d\n", packet->params[4]);
-	printf("[AR]: Reverse Dist:\t%d\n", packet->params[5]);
-	//printf("Left Reverse Ticks Turns:\t%d\n", packet->params[6]);
+	printf("[AR]: Left Encoder Count:  	\t\t%d\n", packet->params[0]);
+	printf("[AR]: Right Encoder Count: 	\t\t%d\n", packet->params[1]);
+	printf("[AR]: Left Angle:    		\t\t%d\n", packet->params[2]);
+	printf("[AR]: Right Angle:			\t\t%d\n", packet->params[3]);
+	printf("[AR]: Forward Dist:			\t%d\n", packet->params[4]);
+	printf("[AR]: Reverse Dist:			\t%d\n", packet->params[5]);
+	printf("[AR]: Net angle movement: 	\t%d\n", packet->params[6]);
 	//printf("Right Reverse Ticks Turns:\t%d\n", packet->params[7]);
 	//printf("Forward Distance:\t\t%d\n", packet->params[8]);
 	//printf("Reverse Distance:\t\t%d\n", packet->params[9]);
@@ -182,37 +182,48 @@ void sendCommand(char command) {
 	switch(command) {
 		case 'h':
 		case 'H':
-			printf("==================================================\n");
+			printf("===========================================================\n");
 			printf("[PI] displaying options (case insensitive)\n");
-			printf("==================================================\n");
+			printf("===========================================================\n");
 			printf("Movement Commands:\n");
-			printf("F - Forward, B - Reverse, R - Right, L - Left\n");
-			printf("S - Stop, A - Approach, D - Get dist\n");
-			printf("--------------------------------------------------\n");
-			printf("Light Sensor Commands:\n");
-			printf("N - Calibrate, M - get RGB value\n");
-			printf("--------------------------------------------------\n");
+			printf("|Q - Approach | W - Forward | E - Fwd COFF | R - get Dst\n");
+			printf("|A - Left     | S - Reverse | D - Right    | F - get RGB\n");
+			printf("|Z - left (S) | C - Stop    | C - Rt (SW)  | V - Plot \n");
+			printf("-----------------------------------------------------------\n");
 			printf("Status Commands:\n");
-			printf("G - Get status, C - Clear status\n");
-			printf("==================================================\n");
+			printf("T - Clear status, G - Get status\n");
+			printf("-----------------------------------------------------------\n");
+			printf("DEBUG COMMANDS:\n");
+			printf("P - Calibrate Light Sensor\n");
+			printf("O - Exit\n");
+			printf("===========================================================\n");
 			break;
 		
-		case 'a': //approach obj
-		case 'A':
+		case 'q': //approach obj
+		case 'Q':
 			printf("[PI] approach command\n");
 			commandPacket.command = COMMAND_APPROACH;
 			sendPacket(&commandPacket);
 			break;
 			
-		case 'd':
-		case 'D':
+		case 'e':
+		case 'E':
+			printf("[PI] forward, collision disabled\n");
+			printf("[PI] WARNING COLLISION DETECTION OFF\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_FWD_NO_STOP;
+			sendPacket(&commandPacket);
+			break;
+			
+		case 'r':
+		case 'R':
 			printf("[PI] get dist command\n");
 			commandPacket.command = COMMAND_GETDIST;
 			sendPacket(&commandPacket);
 			break;
 			
-		case 'f': //forward
-		case 'F':
+		case 'w': //forward
+		case 'W':
 			printf("[PI] forward command\n");
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_FORWARD;
@@ -220,8 +231,8 @@ void sendCommand(char command) {
 			scan();
 			break;
 
-		case 'b': //reverse
-		case 'B':
+		case 's': //reverse
+		case 'S':
 			printf("[PI] reverse command\n");
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_REVERSE;
@@ -230,36 +241,54 @@ void sendCommand(char command) {
 			scan();
 			break;
 
-		case 'l': //left
-		case 'L':
+		case 'a': //left
+		case 'A':
 			printf("[PI] left command\n");
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
-			
 			scan();
 			
 			break;
 
-		case 'r': //right
-		case 'R':
+		case 'd': //right
+		case 'D':
 			printf("[PI] right command\n");
 			getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
+			scan();
+			break;
+			
 		
+		case 'z': //swing left
+		case 'Z':
+			printf("[PI] swing left command\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_SWING_LEFT;
+			sendPacket(&commandPacket);
+			scan();
+			
+			break;
+
+		case 'c': //swing right
+		case 'C':
+			printf("[PI] swing right command\n");
+			getParams(&commandPacket);
+			commandPacket.command = COMMAND_SWING_RIGHT;
+			sendPacket(&commandPacket);
 			scan();
 			break;
 
-		case 's': //stop
-		case 'S':
+		case 'x': //stop
+		case 'X':
 			printf("[PI] stop command\n");
 			commandPacket.command = COMMAND_STOP;
 			sendPacket(&commandPacket);
 			break;
 
-		case 'c': //clear status
-		case 'C':
+		case 't': //clear status
+		case 'T':
 			printf("[PI] clear status command\n");
 			commandPacket.command = COMMAND_CLEAR_STATS;
 			commandPacket.params[0] = 0;
@@ -271,31 +300,33 @@ void sendCommand(char command) {
 			printf("[PI] fetch status command\n");
 			commandPacket.command = COMMAND_GET_STATS;
 			sendPacket(&commandPacket);
+			
 			break;
 			
-		case 'n':
-		case 'N':
+		case 'p':
+		case 'P':
 			printf("[PI] calibrating ARDUINO light sensor\n");
 			commandPacket.command = COMMAND_CALIBRATELS;
 			sendPacket(&commandPacket);
 			break;
 			
-		case 'm':
-		case 'M':
+		case 'f':
+		case 'F':
 			printf("[PI] fetching RGB values\n");
 			commandPacket.command = COMMAND_GETRGB;
 			sendPacket(&commandPacket);
 			break;
+			
+		case 'v': //plot
+		case 'V':
+			printf("[PI] plotting\n");
+			plot();
+			break;
 
-		case 'q': //exit
-		case 'Q':
+		case 'o': //exit
+		case 'O':
 			printf("[PI] EXIT CALLED\n");
 			exitFlag=1;
-			break;
-		
-		case 'p':
-		case 'P':
-			plot();
 			break;
 		
 		default:

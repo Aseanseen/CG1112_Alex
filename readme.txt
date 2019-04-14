@@ -39,6 +39,9 @@ Build 6 (14.4.19):
 		Now shows more info for the user
 	Integrated gnuplot into main Pi code
 
+	Added SCP executable (call in bash terminal in remote desktop)
+		Follow the instructions to setup
+	Added Plotting executable and updater executable for GNUPLOT (remote desktop)
 
 ---------------------------------------------------------------------------------------------------
 ===================================================================================================
